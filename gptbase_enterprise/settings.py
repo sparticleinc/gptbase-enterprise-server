@@ -40,6 +40,9 @@ DB_URL = 'postgres://{username}:{pwd}@{host}:{port}/{dbname}'.format(
 DOMAIN = os.getenv(
     'DOMAIN', '')
 
+GPTBASE_KEY = os.getenv(
+    'GPTBASE_KEY', '')
+
 # TortoiseORM settings
 TORTOISE_ORM = {
     'connections': {
