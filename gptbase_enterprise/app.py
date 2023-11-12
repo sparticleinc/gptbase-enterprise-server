@@ -54,4 +54,4 @@ async def get_documentation():
 
 @app.get('/')
 def read_root():
-    return 'hello'
+    return 'hello gptbase-enterprise'
