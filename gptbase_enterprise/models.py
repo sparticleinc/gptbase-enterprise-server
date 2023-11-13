@@ -36,6 +36,19 @@ class EnvironmentData(AbstractBaseModelWithDeletedAt):
     description = fields.CharField(null=True, max_length=255)
     sort = fields.IntField(null=True)
     data = fields.JSONField(null=True)
+    robot_id = fields.UUIDField(null=True)
+
+    class PydanticMeta:
+        exclude = (
+            'updated_at',
+            'deleted_at',
+        )
+
+
+class Config(AbstractBaseModelWithDeletedAt):
+    name = fields.CharField(max_length=255)
+    description = fields.CharField(null=True, max_length=255)
+    data = fields.JSONField(null=True)
 
     class PydanticMeta:
         exclude = (
