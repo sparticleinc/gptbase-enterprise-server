@@ -43,6 +43,9 @@ DOMAIN = os.getenv(
 GPTBASE_KEY = os.getenv(
     'GPTBASE_KEY', '')
 
+GPTBASE_URL = os.getenv(
+    'GPTBASE_URL', '')
+
 # TortoiseORM settings
 TORTOISE_ORM = {
     'connections': {
