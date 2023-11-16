@@ -9,16 +9,15 @@ router = APIRouter(prefix='/api/v1/environmental_data', tags=['Environmental dat
 
 
 # 获取环境配置
-@router.get('/{ai_id}')
-async def get_environmental_data(ai_id: UUID):
-    environmental_data = await EnvironmentData.filter(robot_id=ai_id, deleted_at__isnull=True).all()
+@router.get('/')
+async def get_environmental_data():
+    environmental_data = await EnvironmentData.filter(deleted_at__isnull=True).all()
     return environmental_data
 
 
 # 新增环境配置
-@router.post('/{ai_id}')
-async def create_environmental_data(ai_id: UUID, environmental_data: EnvironmentDataIn):
-    environmental_data.robot_id = ai_id
+@router.post('/')
+async def create_environmental_data(environmental_data: EnvironmentDataIn):
     environmental_data_obj = await EnvironmentData.create(**environmental_data.dict(exclude_unset=True))
     return environmental_data_obj
 

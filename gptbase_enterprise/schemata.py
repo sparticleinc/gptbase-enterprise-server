@@ -22,7 +22,6 @@ class EnvironmentDataIn(BaseModel):
     description: Optional[str] = None
     sort: Optional[int] = None
     data: Optional[List[str]] = None
-    robot_id: Optional[UUID] = None
 
     class Config:
         orm_mode = True
