@@ -13,7 +13,15 @@ async def question(ai_id: str, message: dict):
 
 
 async def fetch_data(ai_id: str, message: dict):
-    async with httpx.AsyncClient() as client:
-        async with client.stream('POST', f'{GPTBASE_URL}/questions/{ai_id}', json=message) as response:
-            async for chunk in response.aiter_text():
-                yield chunk
+    try:
+        async with httpx.AsyncClient() as client:
+            async with client.stream('POST', f'{GPTBASE_URL}/questions/{ai_id}', json=message) as response:
+                async for chunk in response.aiter_text():
+                    yield chunk
+
+    except httpx.HTTPStatusError as ex:
+        print(f"[question]:Response Error: {ex}")
+    except httpx.RequestError as ex:
+        print(f"[question]:Request Error: {ex}")
+    except Exception as ex:
+        print(f"[question]:An error occurred: {ex}")
