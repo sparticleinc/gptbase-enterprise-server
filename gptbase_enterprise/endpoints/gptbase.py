@@ -21,11 +21,12 @@ async def forward_data(request: Request):
         try:
             response = await client.request(request.method, url, data=body, headers=headers)
             response.raise_for_status()
+            if response.content:
+                return response.json()
         except httpx.HTTPStatusError as e:
             print(f"[gptbase_error]: {e}")
             raise e
         except Exception as e:
             print(f"[gptbase_error]: {e}")
             raise e
-
-    return response.json()
+    return
