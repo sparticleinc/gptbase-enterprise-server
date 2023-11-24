@@ -14,7 +14,8 @@ async def question(ai_id: str, message: dict):
 
 async def fetch_data(ai_id: str, message: dict):
     try:
-        async with httpx.AsyncClient() as client:
+        timeout = httpx.Timeout(60.0, read=300.0)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             async with client.stream('POST', f'{GPTBASE_URL}/questions/{ai_id}', json=message) as response:
                 async for chunk in response.aiter_text():
                     yield chunk
