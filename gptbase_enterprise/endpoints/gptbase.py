@@ -16,8 +16,8 @@ async def forward_data(request: Request):
 
     headers = {"Authorization": f"Bearer {GPTBASE_KEY}"}
     body = await request.body() if request.method != "GET" and request.method != "DELETE" else None
-
-    async with httpx.AsyncClient() as client:
+    timeout = httpx.Timeout(60.0, read=300.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
         try:
             response = await client.request(request.method, url, data=body, headers=headers)
             response.raise_for_status()
