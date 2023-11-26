@@ -18,7 +18,10 @@ async def fetch_data(ai_id: str, message: dict):
         async with httpx.AsyncClient(timeout=timeout) as client:
             async with client.stream('POST', f'{GPTBASE_URL}/questions/{ai_id}', json=message) as response:
                 async for chunk in response.aiter_text():
-                    yield chunk
+                    if response.status_code == 200:
+                        yield chunk
+                    elif chunk != '':
+                        yield f'{{"status_code": {response.status_code}, "message": {chunk}}}'
 
     except httpx.HTTPStatusError as ex:
         print(f"[question]:Response Error: {ex}")
