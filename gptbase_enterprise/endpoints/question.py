@@ -1,3 +1,5 @@
+import json
+
 import httpx
 from fastapi import APIRouter
 from starlette.responses import StreamingResponse
@@ -21,7 +23,11 @@ async def fetch_data(ai_id: str, message: dict):
                     if response.status_code == 200:
                         yield chunk
                     elif chunk != '':
-                        yield f'{{"status_code": {response.status_code}, "message": {chunk}}}'
+                        try:
+                            error_message = json.loads(chunk)['detail']
+                            yield f'{{"status_code": {response.status_code}, "detail": "{error_message}"}}'
+                        except json.JSONDecodeError:
+                            yield f'{{"status_code": {response.status_code}, "message": {chunk}}}'
 
     except httpx.HTTPStatusError as ex:
         print(f"[question]:Response Error: {ex}")
