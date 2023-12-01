@@ -1,5 +1,5 @@
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from starlette.requests import Request
 
 from gptbase_enterprise.settings import GPTBASE_URL, GPTBASE_KEY
@@ -20,7 +20,11 @@ async def forward_data(request: Request):
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
             response = await client.request(request.method, url, data=body, headers=headers)
-            response.raise_for_status()
+            if response.status_code != 200:
+                detail = response.json().get('detail') if response.content else None
+                raise HTTPException(
+                    status_code=response.status_code, detail=detail
+                )
             if response.content:
                 return response.json()
         except httpx.HTTPStatusError as e:
