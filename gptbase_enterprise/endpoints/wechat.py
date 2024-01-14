@@ -50,13 +50,15 @@ async def post_msg(msg_signature: str, timestamp: str, nonce: str, request: Requ
         msg = parse_message(decrypted_xml)
         new_msg = await WechatMessageLog.create(
             raw_message=raw_message.decode('utf-8'),
+            message_type=msg.type,
             decrypted_xml=decrypted_xml,
             msg_type=msg.type,
             answer=msg.content,
-            msg_msg_id=msg.msg_id,
+            message_msg_id=msg.id,
             message_from_user_name=msg.source,
             message_to_user_name=msg.target,
             message_create_time=msg.create_time,
+            reply='',
         )
         if msg.type == "text":
             reply = create_reply(msg.content, msg).render()
