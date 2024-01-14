@@ -55,3 +55,22 @@ class Config(AbstractBaseModelWithDeletedAt):
             'updated_at',
             'deleted_at',
         )
+
+
+class WechatMessageLog(AbstractBaseModelWithDeletedAt):
+    raw_message = fields.TextField()
+    decrypted_xml = fields.TextField()
+    message_type = fields.CharField(max_length=255)
+    message_content = fields.TextField()
+    message_msg_id = fields.CharField(max_length=255)
+    message_from_user_name = fields.CharField(max_length=255)
+    message_to_user_name = fields.CharField(max_length=255)
+    message_create_time = fields.DatetimeField(null=True)
+    answer = fields.TextField(null=True)
+    reply = fields.TextField(null=True)
+
+    class PydanticMeta:
+        exclude = (
+            'updated_at',
+            'deleted_at',
+        )

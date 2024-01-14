@@ -46,6 +46,22 @@ GPTBASE_KEY = os.getenv(
 GPTBASE_URL = os.getenv(
     'GPTBASE_URL', '')
 
+WECHAT_TOKEN = os.getenv(
+    'WECHAT_TOKEN', '')
+
+
+WECHAT_KEY = os.getenv(
+    'WECHAT_KEY', '')
+
+
+WECHAT_CORP_ID = os.getenv(
+    'WECHAT_CORP_ID', '')
+
+
+
+
+
+
 # TortoiseORM settings
 TORTOISE_ORM = {
     'connections': {
