@@ -69,6 +69,7 @@ class WechatMessageLog(AbstractBaseModelWithDeletedAt):
     answer = fields.TextField(null=True)
     reply = fields.TextField(null=True)
     reply_create_time = fields.DatetimeField(null=True)
+    reply_error_msg = fields.CharField(null=True, max_length=255)
 
     class PydanticMeta:
         exclude = (

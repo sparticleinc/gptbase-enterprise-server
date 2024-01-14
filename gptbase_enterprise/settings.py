@@ -57,7 +57,8 @@ WECHAT_KEY = os.getenv(
 WECHAT_CORP_ID = os.getenv(
     'WECHAT_CORP_ID', '')
 
-
+GPTBASE_AI_ID = os.getenv(
+    'GPTBASE_AI_ID', '')
 
 
 
