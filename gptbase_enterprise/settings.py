@@ -60,6 +60,12 @@ WECHAT_CORP_ID = os.getenv(
 GPTBASE_AI_ID = os.getenv(
     'GPTBASE_AI_ID', '')
 
+WECHAT_SECRET = os.getenv(
+    'WECHAT_SECRET', '')
+
+WECHAT_AGENT_ID = os.getenv(
+    'WECHAT_AGENT_ID', '')
+
 
 
 

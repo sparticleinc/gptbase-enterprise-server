@@ -1,6 +1,8 @@
+import asyncio
 import json
 from datetime import datetime
 import httpx
+from wechatpy.enterprise import WeChatClient
 
 from starlette.requests import Request
 from fastapi import APIRouter, HTTPException
@@ -66,51 +68,74 @@ async def post_msg(msg_signature: str, timestamp: str, nonce: str, request: Requ
             message_create_time=msg.create_time,
             reply='',
         )
-        if msg.type == "text":
-            gptbase_message_info = await _send_gptbase_message("你好", "fqwfqw32")
-            if gptbase_message_info and gptbase_message_info.get('messages') is not None:
-                print(f'gptbase_message_info: {gptbase_message_info}')
-                reply = create_reply(msg.content, msg).render()
-                await WechatMessageLog.filter(id=new_msg.id).update(reply=reply, reply_create_time=datetime.now())
-            else:
-                print(f'gptbase_message_info_error: {gptbase_message_info.get("messages")}')
-                reply = create_reply("系统错误,请稍后再试 错误信息:", {gptbase_message_info.get("messages")}).render()
-                await WechatMessageLog.filter(id=new_msg.id).update(reply_error_msg=gptbase_message_info.get("messages")
-                                                                    , reply_create_time=datetime.now())
+        asyncio_task = asyncio.create_task(_send(msg, new_msg, msg.source))
 
+    return
+
+
+async def _send(msg, new_msg, user_name):
+    req_content = 'System error. Please try again later.'
+    if msg.type == "text":
+        print(f'Sending to gptbase: {msg.content} session_id: {msg.source}_{msg.target}_{new_msg.id}')
+        start_time = datetime.now()
+        gptbase_message_info = await _send_gptbase_message(msg.content,
+                                                           f'{msg.source}_{msg.target}_{new_msg.id}')
+        end_time = datetime.now()
+        time_delta = (end_time - start_time).total_seconds()
+        print(f'gptbase tims: {time_delta}')
+        print(f'Receive gptbase return message: {gptbase_message_info}')
+        if gptbase_message_info and gptbase_message_info.get('messages') is None:
+            req_content = gptbase_message_info.get('answer')
+            await WechatMessageLog.filter(id=new_msg.id).update(reply=gptbase_message_info.get('answer'), reply_create_time=datetime.now())
         else:
-            reply = create_reply("除文本信息 其他暂不支持", msg).render()
-        res = crypto.encrypt_message(reply, nonce, timestamp)
+            print(f'gptbase_message_info_error: {gptbase_message_info.get("messages")}')
+            req_content = f'system error: {gptbase_message_info.get("messages")}'
+            await WechatMessageLog.filter(id=new_msg.id).update(reply_error_msg=gptbase_message_info.get("messages")
+                                                                , reply_create_time=datetime.now())
+    else:
+        req_content = 'Except for text messages, others are not supported yet.'
 
-        return res
+    # 主动发送消息
+    wechat_client = WeChatClient(
+        settings.WECHAT_CORP_ID,
+        settings.WECHAT_SECRET,
+    )
+    msg_info = wechat_client.message.send_text(agent_id=settings.WECHAT_AGENT_ID, user_ids=f'{user_name}', content=req_content)
+    print(f'Actively send message results: {msg_info}')
+
+
+
 
 
 async def _send_gptbase_message(question: str, session_id: str):
-    headers = {"Authorization": f"Bearer {GPTBASE_KEY}"}
-    timeout = httpx.Timeout(60.0, read=300.0)
-    body = {
-        'ai_id': GPTBASE_AI_ID,
-        'session_id': session_id,
-        'question': question,
-        'stream': False,
-        'format': 'JSON_AST'
-    }
-    body_str = json.dumps(body)
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        try:
-            response = await client.request('POST', f'{GPTBASE_URL}/questions/{GPTBASE_AI_ID}',
-                                            data=body_str,
-                                            headers=headers)
-            if response.status_code != 200:
-                detail = response.json().get('detail') if response.content else None
-                raise HTTPException(
-                    status_code=response.status_code, detail=detail
-                )
-            if response.content:
-                return response.json()
-        except httpx.HTTPStatusError as e:
-            print(f"[gptbase_error]: {e}")
-            raise e
-        except Exception as e:
-            print(f"[gptbase_error]: {e}")
-            raise e
+        print(f'_send_gptbase_message: Start')
+        headers = {"Authorization": f"Bearer {GPTBASE_KEY}"}
+        timeout = httpx.Timeout(600.0, read=600.0)
+        body = {
+            'ai_id': GPTBASE_AI_ID,
+            'session_id': session_id,
+            'question': question,
+            'stream': False,
+            'format': 'JSON_AST'
+        }
+        body_str = json.dumps(body)
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            try:
+                response = await client.request('POST', f'{GPTBASE_URL}/questions/{GPTBASE_AI_ID}',
+                                                data=body_str,
+                                                headers=headers)
+                if response.status_code != 200:
+                    detail = response.json().get('detail') if response.content else None
+                    raise HTTPException(
+                        status_code=response.status_code, detail=detail
+                    )
+                if response.content:
+                    return response.json()
+            except httpx.HTTPStatusError as e:
+                print(f"[gptbase_error]: {e}")
+                raise e
+            except Exception as e:
+                print(f"[gptbase_error]: {e}")
+                raise e
+
+
