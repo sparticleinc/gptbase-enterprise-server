@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from starlette.requests import Request
 from fastapi import APIRouter
 from wechatpy.enterprise.crypto import WeChatCrypto
@@ -55,6 +57,7 @@ async def post_msg(msg_signature: str, timestamp: str, nonce: str, request: Requ
             msg_type=msg.type,
             answer=msg.content,
             message_msg_id=msg.id,
+            message_content=msg.content,
             message_from_user_name=msg.source,
             message_to_user_name=msg.target,
             message_create_time=msg.create_time,
@@ -62,7 +65,7 @@ async def post_msg(msg_signature: str, timestamp: str, nonce: str, request: Requ
         )
         if msg.type == "text":
             reply = create_reply(msg.content, msg).render()
-            await WechatMessageLog.filter(id=new_msg.id).update(reply=reply)
+            await WechatMessageLog.filter(id=new_msg.id).update(reply=reply, reply_create_time=datetime.now())
         else:
             reply = create_reply("除文本信息 其他暂不支持", msg).render()
         res = crypto.encrypt_message(reply, nonce, timestamp)
