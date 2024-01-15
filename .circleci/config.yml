@@ -48,7 +48,35 @@ jobs:
           region: AWS_REGION
           repo: <<parameters.repo>>
           tag: "<<parameters.docker-tag>>${CIRCLE_SHA1}"
-          
+  docker-hub-build-push:
+    machine:
+      image: ubuntu-2004:current
+    resource_class: medium
+    parameters:
+      path:
+        type: string
+      repo:
+        type: string
+      dockerfile:
+        type: string
+      image_tag:
+        type: string
+        default: latest        
+    steps:
+      - checkout
+      - run:
+          name: Build Docker image
+          command: |
+            docker build -t <<parameters.repo>>:<<parameters.image_tag>> -f <<parameters.dockerfile>> .
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            IMAGE_TAG="0.0.${CIRCLE_BUILD_NUM}"
+            docker tag <<parameters.repo>>:<<parameters.image_tag>> <<parameters.repo>>:$IMAGE_TAG
+            docker push <<parameters.repo>>:<<parameters.image_tag>>
+            docker push <<parameters.repo>>:$IMAGE_TAG
+                      
   deploy:
     machine:
        image: ubuntu-2004:current
