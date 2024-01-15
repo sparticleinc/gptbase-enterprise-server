@@ -100,7 +100,7 @@ async def _send(msg, new_msg, user_name):
         settings.WECHAT_CORP_ID,
         settings.WECHAT_SECRET,
     )
-    msg_info = wechat_client.message.send_text(agent_id=settings.WECHAT_AGENT_ID, user_ids=f'{user_name}', content=req_content)
+    msg_info = wechat_client.message.send_markdown(agent_id=settings.WECHAT_AGENT_ID, user_ids=f'{user_name}', content=req_content)
     print(f'Actively send message results: {msg_info}')
 
 
