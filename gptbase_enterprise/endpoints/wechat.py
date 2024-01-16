@@ -86,7 +86,8 @@ async def _send(msg, new_msg, user_name):
         print(f'Receive gptbase return message: {gptbase_message_info}')
         if gptbase_message_info and gptbase_message_info.get('messages') is None:
             req_content = gptbase_message_info.get('answer')
-            await WechatMessageLog.filter(id=new_msg.id).update(reply=gptbase_message_info.get('answer'), reply_create_time=datetime.now())
+            await WechatMessageLog.filter(id=new_msg.id).update(reply=gptbase_message_info.get('answer'),
+                                                                reply_create_time=datetime.now())
         else:
             print(f'gptbase_message_info_error: {gptbase_message_info.get("messages")}')
             req_content = f'system error: {gptbase_message_info.get("messages")}'
@@ -100,42 +101,38 @@ async def _send(msg, new_msg, user_name):
         settings.WECHAT_CORP_ID,
         settings.WECHAT_SECRET,
     )
-    msg_info = wechat_client.message.send_markdown(agent_id=settings.WECHAT_AGENT_ID, user_ids=f'{user_name}', content=req_content)
+    msg_info = wechat_client.message.send_markdown(agent_id=settings.WECHAT_AGENT_ID, user_ids=f'{user_name}',
+                                                   content=req_content)
     print(f'Actively send message results: {msg_info}')
 
 
-
-
-
 async def _send_gptbase_message(question: str, session_id: str):
-        print(f'_send_gptbase_message: Start')
-        headers = {"Authorization": f"Bearer {GPTBASE_KEY}"}
-        timeout = httpx.Timeout(600.0, read=600.0)
-        body = {
-            'ai_id': GPTBASE_AI_ID,
-            'session_id': session_id,
-            'question': question,
-            'stream': False,
-            'format': 'JSON_AST'
-        }
-        body_str = json.dumps(body)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            try:
-                response = await client.request('POST', f'{GPTBASE_URL}/questions/{GPTBASE_AI_ID}',
-                                                data=body_str,
-                                                headers=headers)
-                if response.status_code != 200:
-                    detail = response.json().get('detail') if response.content else None
-                    raise HTTPException(
-                        status_code=response.status_code, detail=detail
-                    )
-                if response.content:
-                    return response.json()
-            except httpx.HTTPStatusError as e:
-                print(f"[gptbase_error]: {e}")
-                raise e
-            except Exception as e:
-                print(f"[gptbase_error]: {e}")
-                raise e
-
-
+    print(f'_send_gptbase_message: Start')
+    headers = {"Authorization": f"Bearer {GPTBASE_KEY}"}
+    timeout = httpx.Timeout(600.0, read=600.0)
+    body = {
+        'ai_id': GPTBASE_AI_ID,
+        'session_id': session_id,
+        'question': question,
+        'stream': False,
+        'format': 'JSON_AST'
+    }
+    body_str = json.dumps(body)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        try:
+            response = await client.request('POST', f'{GPTBASE_URL}/questions/{GPTBASE_AI_ID}',
+                                            data=body_str,
+                                            headers=headers)
+            if response.status_code != 200:
+                detail = response.json().get('detail') if response.content else None
+                raise HTTPException(
+                    status_code=response.status_code, detail=detail
+                )
+            if response.content:
+                return response.json()
+        except httpx.HTTPStatusError as e:
+            print(f"[gptbase_error]: {e}")
+            raise e
+        except Exception as e:
+            print(f"[gptbase_error]: {e}")
+            raise e
